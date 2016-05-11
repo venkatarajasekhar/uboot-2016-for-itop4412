@@ -27,6 +27,11 @@ DECLARE_GLOBAL_DATA_PTR;
 #define TX_FIFO_COUNT_MASK	(0xff << TX_FIFO_COUNT_SHIFT)
 #define TX_FIFO_FULL		(1 << 24)
 
+#define CLK_SRC_PERIL0      (0x10030000 + 0xC250)
+#define CLK_SRC_MASK_PERIL0 (0x10030000 + 0xC350)
+#define CLK_DIV_PERIL0      (0x10030000 + 0xC550)
+#define CLK_DIV_STAT_PERIL0 (0x10030000 + 0xC650)
+
 /* Information about a serial port */
 struct s5p_serial_platdata {
 	struct s5p_uart *reg;  /* address of registers in physical memory */
@@ -62,7 +67,7 @@ static const int udivslot[] = {
 static void __maybe_unused s5p_serial_init(struct s5p_uart *uart)
 {
 	/* enable FIFOs, auto clear Rx FIFO */
-	writel(0x3, &uart->ufcon);
+	writel((7 << 8) | (1 << 2) | (1 << 0), &uart->ufcon);
 	writel(0, &uart->umcon);
 	/* 8N1 */
 	writel(0x3, &uart->ulcon);
@@ -73,16 +78,16 @@ static void __maybe_unused s5p_serial_init(struct s5p_uart *uart)
 static void __maybe_unused s5p_serial_baud(struct s5p_uart *uart, uint uclk,
 					   int baudrate)
 {
-	u32 val;
+	/* clock for uart init */
+	writel((readl(CLK_SRC_PERIL0) & ~(0xF << 8)) | (0x6 << 8), CLK_SRC_PERIL0);
+	writel(readl(CLK_SRC_MASK_PERIL0) | (1 << 8), CLK_SRC_MASK_PERIL0);
+	writel((readl(CLK_DIV_PERIL0) & ~(0xF << 8)) | (13 << 8), CLK_DIV_PERIL0);
 
-	val = uclk / baudrate;
+	while(readl(CLK_DIV_STAT_PERIL0) & (1 << 8));
 
-	writel(val / 16 - 1, &uart->ubrdiv);
-
-	if (s5p_uart_divslot())
-		writew(udivslot[val % 16], &uart->rest.slot);
-	else
-		writeb(val % 16, &uart->rest.value);
+	writel(0x2 << 0 | 0x2 << 4, (0x11400000 + 0x0020));
+	writel(30, &uart->ubrdiv);
+	writeb(0 , &uart->rest.value);
 }
 
 #ifndef CONFIG_SPL_BUILD
@@ -131,8 +136,7 @@ static int s5p_serial_getc(struct udevice *dev)
 	struct s5p_serial_platdata *plat = dev->platdata;
 	struct s5p_uart *const uart = plat->reg;
 
-	if (!(readl(&uart->ufstat) & RX_FIFO_COUNT_MASK))
-		return -EAGAIN;
+	while (!(readl(&uart->utrstat) & (1 << 0)));
 
 	serial_err_check(uart, 0);
 	return (int)(readb(&uart->urxh) & 0xff);
@@ -143,8 +147,7 @@ static int s5p_serial_putc(struct udevice *dev, const char ch)
 	struct s5p_serial_platdata *plat = dev->platdata;
 	struct s5p_uart *const uart = plat->reg;
 
-	if (readl(&uart->ufstat) & TX_FIFO_FULL)
-		return -EAGAIN;
+	while (!(readl(&uart->utrstat) & (1 << 2)));
 
 	writeb(ch, &uart->utxh);
 	serial_err_check(uart, 1);

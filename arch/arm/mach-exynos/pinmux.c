@@ -11,6 +11,7 @@
 #include <asm/arch/pinmux.h>
 #include <asm/arch/sromc.h>
 
+#ifndef CONFIG_EXYNOS4
 static void exynos5_uart_config(int peripheral)
 {
 	int i, start, count;
@@ -555,7 +556,7 @@ static int exynos5420_pinmux_config(int peripheral, int flags)
 
 	return 0;
 }
-
+#else
 static void exynos4_i2c_config(int peripheral, int flags)
 {
 	switch (peripheral) {
@@ -785,7 +786,7 @@ static void exynos4x12_uart_config(int peripheral)
 	}
 }
 
-static int exynos4_pinmux_config(int peripheral, int flags)
+static int __maybe_unused exynos4_pinmux_config(int peripheral, int flags)
 {
 	switch (peripheral) {
 	case PERIPH_ID_UART0:
@@ -857,6 +858,7 @@ static int exynos4x12_pinmux_config(int peripheral, int flags)
 
 int exynos_pinmux_config(int peripheral, int flags)
 {
+#if 0
 	if (cpu_is_exynos5()) {
 		if (proid_is_exynos5420() || proid_is_exynos5422())
 			return exynos5420_pinmux_config(peripheral, flags);
@@ -864,7 +866,9 @@ int exynos_pinmux_config(int peripheral, int flags)
 			return exynos5_pinmux_config(peripheral, flags);
 	} else if (cpu_is_exynos4()) {
 		if (proid_is_exynos4412())
+#endif
 			return exynos4x12_pinmux_config(peripheral, flags);
+#if 0
 		else
 			return exynos4_pinmux_config(peripheral, flags);
 	}
@@ -872,8 +876,9 @@ int exynos_pinmux_config(int peripheral, int flags)
 	debug("pinmux functionality not supported\n");
 
 	return -1;
+#endif
 }
-
+#endif
 #if CONFIG_IS_ENABLED(OF_CONTROL)
 static int exynos4_pinmux_decode_periph_id(const void *blob, int node)
 {

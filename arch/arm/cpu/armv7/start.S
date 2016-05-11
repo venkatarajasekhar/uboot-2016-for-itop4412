@@ -32,6 +32,16 @@
 	.globl	save_boot_params_ret
 
 reset:
+	/* PS-Hold high */
+	ldr r0, =0x1002330C
+	ldr r1, [r0]
+	orr r1, r1, #0x300
+	str r1, [r0]
+
+	ldr r0, =0x11000C08
+	ldr r1, =0x0
+	str r1, [r0]
+
 	/* Allow the board to save important registers */
 	b	save_boot_params
 save_boot_params_ret:

@@ -37,6 +37,7 @@ obj-$(CONFIG_SEMIHOSTING) += semihosting.o
 
 obj-y	+= sections.o
 obj-y	+= stack.o
+obj-$(CONFIG_USE_ARCH_MEMCPY) += memcpy.o
 ifdef CONFIG_CPU_V7M
 obj-y	+= interrupts_m.o
 else ifdef CONFIG_ARM64

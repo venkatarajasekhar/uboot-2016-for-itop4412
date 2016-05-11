@@ -12,7 +12,11 @@ obj-$(CONFIG_EXYNOS5420)	+= sec_boot.o
 ifdef CONFIG_SPL_BUILD
 obj-$(CONFIG_EXYNOS5)	+= clock_init_exynos5.o
 obj-$(CONFIG_EXYNOS5)	+= dmc_common.o dmc_init_ddr3.o
+ifdef CONFIG_TARGET_ITOP4412
+obj-y += dmc_init_itop4412.o clock_init_itop4412.o
+else
 obj-$(CONFIG_EXYNOS4210)+= dmc_init_exynos4.o clock_init_exynos4.o
+endif
 obj-y	+= spl_boot.o
 obj-y	+= lowlevel_init.o
 endif

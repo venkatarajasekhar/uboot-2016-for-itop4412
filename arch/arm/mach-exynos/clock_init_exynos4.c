@@ -30,16 +30,46 @@
 #include <asm/arch/clk.h>
 #include <asm/arch/clock.h>
 #include "common_setup.h"
-#include "exynos4_setup.h"
 
+#define APLL_CON1_VAL (0x00803800)
+#define APLL_CON0_VAL (0x807D0300)
+#define MPLL_CON1_VAL (0x00803800)
+#define MPLL_CON0_VAL (0x80640300)
+#define EPLL_CON2_VAL (0x00000080)
+#define EPLL_CON1_VAL (0x66010000)
+#define EPLL_CON0_VAL (0x80640301)
+#define VPLL_CON2_VAL (0x00000080)
+#define VPLL_CON1_VAL (0x66010000)
+#define VPLL_CON0_VAL (0x80640303)
+
+#define CLK_SRC_CPU_VAL (0x01000001)
+#define CLK_SRC_DMC_VAL (0x00011000)
+#define CLK_SRC_TOP0_VAL (0x00000110)
+#define CLK_SRC_TOP1_VAL (0x00011000)
+
+#define CLK_SRC_LEFTBUS_VAL (0x00000010)
+#define CLK_SRC_RIGHTBUS_VAL (0x00000010)
+
+#define CLK_DIV_LEFTBUS_VAL (0x00000013)
+#define CLK_DIV_RIGHTBUS_VAL (0x00000013)
+
+#define CLK_DIV_DMC0_VAL (0x00111113)
+#define CLK_DIV_DMC1_VAL (0x01011113)
+
+#define CLK_DIV_CPU0_VAL (0x01143730)
+#define CLK_DIV_CPU1_VAL (0x00000004)
+
+#define CLK_DIV_TOP_VAL (0x01205473)
+
+#define PLL_LOCKTIME (0xFFF)
 /*
  * system_clock_init: Initialize core clock and bus clock.
  * void system_clock_init(void)
  */
 void system_clock_init(void)
 {
-	struct exynos4_clock *clk =
-			(struct exynos4_clock *)samsung_get_base_clock();
+	struct exynos4x12_clock *clk =
+			(struct exynos4x12_clock*)samsung_get_base_clock();
 
 	writel(CLK_SRC_CPU_VAL, &clk->src_cpu);
 
@@ -50,12 +80,6 @@ void system_clock_init(void)
 	writel(CLK_SRC_DMC_VAL, &clk->src_dmc);
 	writel(CLK_SRC_LEFTBUS_VAL, &clk->src_leftbus);
 	writel(CLK_SRC_RIGHTBUS_VAL, &clk->src_rightbus);
-	writel(CLK_SRC_FSYS_VAL, &clk->src_fsys);
-	writel(CLK_SRC_PERIL0_VAL, &clk->src_peril0);
-	writel(CLK_SRC_CAM_VAL, &clk->src_cam);
-	writel(CLK_SRC_MFC_VAL, &clk->src_mfc);
-	writel(CLK_SRC_G3D_VAL, &clk->src_g3d);
-	writel(CLK_SRC_LCD0_VAL, &clk->src_lcd0);
 
 	sdelay(0x10000);
 
@@ -66,14 +90,6 @@ void system_clock_init(void)
 	writel(CLK_DIV_LEFTBUS_VAL, &clk->div_leftbus);
 	writel(CLK_DIV_RIGHTBUS_VAL, &clk->div_rightbus);
 	writel(CLK_DIV_TOP_VAL, &clk->div_top);
-	writel(CLK_DIV_FSYS1_VAL, &clk->div_fsys1);
-	writel(CLK_DIV_FSYS2_VAL, &clk->div_fsys2);
-	writel(CLK_DIV_FSYS3_VAL, &clk->div_fsys3);
-	writel(CLK_DIV_PERIL0_VAL, &clk->div_peril0);
-	writel(CLK_DIV_CAM_VAL, &clk->div_cam);
-	writel(CLK_DIV_MFC_VAL, &clk->div_mfc);
-	writel(CLK_DIV_G3D_VAL, &clk->div_g3d);
-	writel(CLK_DIV_LCD0_VAL, &clk->div_lcd0);
 
 	/* Set PLL locktime */
 	writel(PLL_LOCKTIME, &clk->apll_lock);
@@ -85,8 +101,10 @@ void system_clock_init(void)
 	writel(APLL_CON0_VAL, &clk->apll_con0);
 	writel(MPLL_CON1_VAL, &clk->mpll_con1);
 	writel(MPLL_CON0_VAL, &clk->mpll_con0);
+	writel(EPLL_CON2_VAL, &clk->epll_con2);
 	writel(EPLL_CON1_VAL, &clk->epll_con1);
 	writel(EPLL_CON0_VAL, &clk->epll_con0);
+	writel(VPLL_CON2_VAL, &clk->vpll_con2);
 	writel(VPLL_CON1_VAL, &clk->vpll_con1);
 	writel(VPLL_CON0_VAL, &clk->vpll_con0);
 

@@ -210,9 +210,14 @@ else
 VAR_SIZE_PARAM =
 endif
 $(obj)/$(BOARD)-spl.bin: $(obj)/u-boot-spl.bin
+ifdef CONFIG_TARGET_ITOP4412
+	@cp -f $< $@
+	$(objtree)/mk4412 $@
+else
 	$(if $(wildcard $(objtree)/spl/board/samsung/$(BOARD)/tools/mk$(BOARD)spl),\
 	$(objtree)/spl/board/samsung/$(BOARD)/tools/mk$(BOARD)spl,\
 	$(objtree)/tools/mkexynosspl) $(VAR_SIZE_PARAM) $< $@
+endif
 endif
 
 quiet_cmd_objcopy = OBJCOPY $@

@@ -254,8 +254,31 @@ void copy_uboot_to_ram(void)
 		break;
 	}
 
+#ifdef CONFIG_TARGET_ITOP4412
+	/*
+	 * Here I use iram 0x02050000-0x02060000 (64k)
+	 * as an buffer, and copy u-boot from sd card to
+	 * this buffer, then copy it to dram addr CONFIG_SYS_TEXT_BASE.
+	 *
+	 */
+#define STEP ((0x02060000 - 0x02050000) / 512)
+	unsigned char *buffer = (unsigned char *)0x02050000;
+	unsigned char *dst = (unsigned char *)CONFIG_SYS_TEXT_BASE;
+
+	for (; size > 0; size -= STEP) {
+		/* copy u-boot from sdcard
+		 * to iram firstly.  */
+		copy_bl2((u32)(offset), (u32)STEP, (u32)buffer);
+		/* then copy u-boot from
+		 * iram to dram. */
+		memcpy(dst, buffer, STEP * 512);
+		dst += STEP * 512;
+		offset += STEP;
+	}
+#else
 	if (copy_bl2)
 		copy_bl2(offset, size, CONFIG_SYS_TEXT_BASE);
+#endif
 }
 
 void memzero(void *s, size_t n)

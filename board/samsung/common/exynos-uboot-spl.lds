@@ -23,6 +23,7 @@ SECTIONS
 		__start = .;
 		*(.vectors)
 		arch/arm/cpu/armv7/start.o (.text*)
+		board/samsung/itop4412/debug_led.o (.text*)
 		*(.text*)
 	} >.sram
 	. = ALIGN(4);
